@@ -5,6 +5,7 @@ stages:
   - deploy
 
 # Lint Stage
+
 lint:
   stage: lint
   image: python:3.10
