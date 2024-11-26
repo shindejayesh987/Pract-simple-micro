@@ -1,12 +1,13 @@
 """
 This script provides a Flask-based web service that fetches random quotes from a MongoDB database
-and tracks the number of requests using Redis. It includes routes for serving quotes and error handling.
+and the number of requests using Redis. It includes routes for serving quotes and error handling.
 """
 
 from flask import Flask, jsonify
 from pymongo import MongoClient
 import redis
 import pymongo.errors
+from redis import exceptions as redis_exceptions
 
 def get_db():
     """
