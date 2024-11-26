@@ -73,7 +73,7 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no devopsjayesh98@34.29.60.11 << 'EOF'
             # Inside the VM, you can execute the deployment script or commands
-            cd /home/devopsjayesh98/simp-micro-service
+            cd /home/devopsjayesh98/simple-micro
             git pull origin main
             # Any other deployment steps like restarting the service, etc.
             #sudo systemctl restart your-service
