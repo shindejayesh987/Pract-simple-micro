@@ -39,7 +39,6 @@ jobs:
       - name: Install dependencies for testing
         run: |
           pip install pytest flask pymongo redis
-      - name: Run tests
 
   build:
     runs-on: ubuntu-latest
