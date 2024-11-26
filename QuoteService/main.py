@@ -36,6 +36,10 @@ class Quote:
         self.quote = quote
         self.by = by
 
+    # Example of adding another method if needed
+    def display_quote(self):
+        return f'"{self.quote}" - {self.by}'
+
 app = Flask(__name__)
 
 @app.route("/api/quote")
