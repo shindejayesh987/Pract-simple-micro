@@ -7,7 +7,6 @@ from flask import Flask, jsonify
 from pymongo import MongoClient
 import redis
 import pymongo.errors
-from redis import exceptions as redis_exceptions
 
 def get_db():
     """
