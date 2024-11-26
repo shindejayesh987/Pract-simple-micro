@@ -13,11 +13,13 @@ def get_db():
     """
     Connects to the MongoDB database and returns the database object.
     """
-    client = MongoClient(host='my-mongo-container',
-                         port=27017,
-                         username='jayesh',
-                         password='jayesh',
-                         authSource="admin")
+    client = MongoClient(
+        host='my-mongo-container',
+        port=27017,
+        username='jayesh',
+        password='jayesh',
+        authSource="admin"
+    )
     db = client["quote_db"]
     return db
 
@@ -36,8 +38,10 @@ class Quote:
         self.quote = quote
         self.by = by
 
-    # Example of adding another method if needed
     def display_quote(self):
+        """
+        Returns the formatted quote as a string.
+        """
         return f'"{self.quote}" - {self.by}'
 
 app = Flask(__name__)
@@ -53,6 +57,7 @@ def get_quote():
         db = get_db()
         r = get_redis()
 
+        # Fetching and incrementing the request count in Redis
         count = r.get("count")
         if count is None:
             r.set("count", 1)
