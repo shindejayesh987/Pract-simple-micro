@@ -1,0 +1,95 @@
+version: '3.9'
+
+services:
+  my-redis-server:
+    image: redis:latest
+    container_name: my-redis-server
+    ports:
+      - "6379:6379"
+    networks:
+      - mynewnetwork
+    restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  mongo:
+    build:
+      context: ./MongoDB
+      dockerfile: Dockerfile  
+    container_name: my-mongo-container
+    ports:
+      - "27017:27017"
+    networks:
+      - mynewnetwork
+    restart: always
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  flask-app:
+    build:
+      context: ./QuoteService  
+      dockerfile: Dockerfile  
+    container_name: my-flask-container
+    ports:
+      - "5000:5000"
+    networks:
+      - mynewnetwork
+    restart: always
+    depends_on:
+      - my-redis-server
+      - mongo
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  api-gateway:
+    build:
+      context: ./ApiGateway  
+      dockerfile: Dockerfile  
+    container_name: my-api-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      QUOTES_API: http://flask-app:5000  
+    networks:
+      - mynewnetwork
+    restart: always
+    depends_on:
+      - flask-app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  react-app:
+    build:
+      context: ./FrontendApplication  
+      dockerfile: Dockerfile  
+      args:
+        MY_API_GATEWAY_URL: http://localhost:3000  
+    container_name: my-react-container
+    ports:
+      - "80:80"
+    networks:
+      - mynewnetwork
+    restart: always
+    depends_on:
+      - api-gateway
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  mynewnetwork:
+    driver: bridge

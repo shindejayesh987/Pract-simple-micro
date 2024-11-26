@@ -1,0 +1,55 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      - name: Run ESLint
+        run: |
+          npm install --prefix FrontendApplication
+          npm run lint --prefix FrontendApplication
+      - name: Run Pylint
+        run: |
+          pip install pylint
+          pylint QuoteService/*.py
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      - name: Run Tests
+        run: |
+          npm install --prefix FrontendApplication
+          npm run test --prefix FrontendApplication
+          pip install pytest
+          pytest QuoteService/tests/
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      - name: Build Frontend
+        run: |
+          npm install --prefix FrontendApplication
+          npm run build --prefix FrontendApplication
+      - name: Build Docker Images
+        run: |
+          docker-compose build
+
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      - name: Deploy with Docker Compose
+        run: |
+          docker-compose up -d
