@@ -71,7 +71,7 @@ jobs:
 
       - name: Deploy to Google Cloud VM
         run: |
-          ssh -o StrictHostKeyChecking=no user@34.29.60.11 << 'EOF'
+          ssh -o StrictHostKeyChecking=no devopsjayesh98@34.29.60.11 << 'EOF'
             # Inside the VM, you can execute the deployment script or commands
             cd /path/to/your/project
             git pull origin main
