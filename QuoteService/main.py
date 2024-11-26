@@ -1,6 +1,13 @@
+"""
+This script provides a Flask-based web service that fetches random quotes from a MongoDB database
+and tracks the number of requests using Redis. It includes routes for serving quotes and error handling.
+"""
+
 from flask import Flask, jsonify
 from pymongo import MongoClient
 import redis
+import pymongo.errors
+import redis.exceptions
 
 def get_db():
     """
@@ -32,7 +39,7 @@ class Quote:
 app = Flask(__name__)
 
 @app.route("/api/quote")
-def quote():
+def get_quote():
     """
     Retrieves a random quote from MongoDB and returns it in a JSON response.
     Also tracks the number of requests using Redis.
@@ -54,16 +61,16 @@ def quote():
         pipe2 = [{'$sample': {'size': 1}}]
         result = db.quote_tb.aggregate(pipeline=pipe2).try_next()
 
-        app.logger.info(f"Result type: {type(result)}")
-        app.logger.info(f"Result: {result}")
+        app.logger.info("Result type: %s", type(result))
+        app.logger.info("Result: %s", result)
 
         if result:
             return jsonify({"quote": result['quote'], "by": result['author'], "count": count})
-        else:
-            return jsonify({"quote": "No quotes found", "by": "Unknown", "count": count})
 
-    except Exception as e:
-        app.logger.error(f"Error occurred: {e}")
+        return jsonify({"quote": "No quotes found", "by": "Unknown", "count": count})
+
+    except (pymongo.errors.PyMongoError, redis.exceptions.RedisError) as e:
+        app.logger.error("Error occurred: %s", e)
         return jsonify({"message": "Internal server error"}), 500
     finally:
         if isinstance(db, MongoClient):
@@ -74,7 +81,7 @@ def page_not_found(e):
     """
     Handles 404 errors (resource not found).
     """
-    app.logger.error(f"404 Error: {e}")
+    app.logger.error("404 Error: %s", e)
     return jsonify({"message": "Resource not found"}), 404
 
 if __name__ == '__main__':
