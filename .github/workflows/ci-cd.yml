@@ -1,52 +1,80 @@
-stages:
-  - lint
-  - test
-  - build
-  - deploy
+name: CI/CD Pipeline
 
-# Lint Stage
+# Define the event that triggers the workflow
+on:
+  push:
+    branches:
+      - main # Trigger on push to the main branch
+  pull_request:
+    branches:
+      - main # Trigger on pull request to the main branch
+  workflow_dispatch: # Manual trigger
 
-lint:
-  stage: lint
-  image: python:3.10
-  script:
-    - pip install pylint flask pymongo redis
-    - pylint QuoteService/main.py
-  only:
-    - main
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.x"
+      - name: Install dependencies for linting
+        run: |
+          pip install pylint flask pymongo redis
+      - name: Run Pylint
+        run: pylint QuoteService/main.py
 
-# Test Stage
-test:
-  stage: test
-  image: python:3.10
-  script:
-    - pip install pytest flask pymongo redis
-    - pytest tests/ --maxfail=5 --disable-warnings
-  only:
-    - main
+  test:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.x"
+      - name: Install dependencies for testing
+        run: |
+          pip install pytest flask pymongo redis
+      - name: Run tests
+        run: |
+          pytest tests/
 
-# Build Stage
-build:
-  stage: build
-  image: docker:24
-  services:
-    - docker:dind
-  before_script:
-    - docker info
-  script:
-    - docker-compose -f docker-compose.yml build
-  only:
-    - main
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v2
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "14"
+      - name: Install Node.js dependencies
+        run: npm install --prefix FrontendApplication
+      - name: Build frontend with webpack
+        run: npm run build --prefix FrontendApplication
 
-# Deploy Stage
-deploy:
-  stage: deploy
-  image: docker:24
-  services:
-    - docker:dind
-  before_script:
-    - docker info
-  script:
-    - docker-compose -f docker-compose.yml up -d
-  only:
-    - main
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v2
+      - name: Deploy to your server (example with SSH)
+        run: |
+          # Example of SSH deployment
+          ssh user@your-server 'bash -s' < deploy-script.sh
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+  notify:
+    runs-on: ubuntu-latest
+    needs: deploy
+    steps:
+      - name: Send a Slack notification
+        run: |
+          curl -X POST -H 'Content-type: application/json' --data '{"text":"Deployment Completed!"}' ${{ secrets.SLACK_WEBHOOK_URL }}
