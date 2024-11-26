@@ -7,7 +7,7 @@ from flask import Flask, jsonify
 from pymongo import MongoClient
 import redis
 import pymongo.errors
-import redis.exceptions
+from redis import exceptions as redis_exceptions
 
 def get_db():
     """
@@ -44,6 +44,12 @@ class Quote:
         """
         return f'"{self.quote}" - {self.by}'
 
+    def is_valid(self):
+        """
+        Checks if the quote is valid (non-empty).
+        """
+        return bool(self.quote) and bool(self.by)
+
 app = Flask(__name__)
 
 @app.route("/api/quote")
@@ -78,7 +84,7 @@ def get_quote():
 
         return jsonify({"quote": "No quotes found", "by": "Unknown", "count": count})
 
-    except (pymongo.errors.PyMongoError, redis.exceptions.RedisError) as e:
+    except (pymongo.errors.PyMongoError, redis_exceptions.RedisError) as e:
         app.logger.error("Error occurred: %s", e)
         return jsonify({"message": "Internal server error"}), 500
     finally:
