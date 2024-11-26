@@ -5,11 +5,16 @@
   "main": "",
   "scripts": {
     "build": "webpack --config=webpack.config.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint ."
   },
   "author": "Kasun Vithanage",
   "license": "MIT",
   "devDependencies": {
+    "@eslint/js": "^9.15.0",
+    "eslint": "^9.15.0",
+    "eslint-plugin-react": "^7.37.2",
+    "globals": "^15.12.0",
     "html-webpack-plugin": "^5.6.0",
     "webpack": "^5.93.0",
     "webpack-cli": "^5.1.4"
